@@ -1,0 +1,15 @@
+# Build artifacts
+build/*
+!build/.gitkeep
+
+# Object files and libraries
+*.o
+*.a
+*.so
+
+# Debug files
+*.core
+core
+
+# Editor files
+.vscode/
