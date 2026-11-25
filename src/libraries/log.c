@@ -4,11 +4,27 @@
 
 void minisdk_log(enum minisdk_log_level level, const char *format, ...)
 {
-    static const char *const labels[] = {"INFO", "WARN", "ERROR"};
     va_list arguments;
     const char *label = "UNKNOWN";
-    if ((unsigned int)level < (sizeof(labels) / sizeof(labels[0]))) label = labels[level];
+
+    switch (level) {
+    case MINISDK_LOG_INFO:
+        label = "INFO";
+        break;
+    case MINISDK_LOG_WARN:
+        label = "WARN";
+        break;
+    case MINISDK_LOG_ERROR:
+        label = "ERROR";
+        break;
+    default:
+        break;
+    }
     (void)fprintf(stderr, "[minisdk:%s] ", label);
+    if (format == NULL) {
+        (void)fputs("<null format>\n", stderr);
+        return;
+    }
     va_start(arguments, format);
     (void)vfprintf(stderr, format, arguments);
     va_end(arguments);
