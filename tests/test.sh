@@ -7,6 +7,7 @@ pass=0
 fail() { echo "FAIL: $*" >&2; exit 1; }
 check() { "$@" || fail "$*"; echo "PASS: $*"; pass=$((pass + 1)); }
 check ./scripts/check-toolchain.sh
+check ./tests/test_math.sh
 check test -f "build/$profile/lib/libminisdk.a"
 for app in hello sysinfo libdemo; do
   bin="build/$profile/bin/$app"
