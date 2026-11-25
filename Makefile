@@ -8,7 +8,7 @@ APP_OBJECTS := $(patsubst %,build/$(BUILD)/apps/%.o,$(APP_NAMES))
 APP_BINS := $(patsubst %,build/$(BUILD)/bin/%,$(APP_NAMES))
 PACKAGE_DIR := packages/riscv-mini-sdk-$(BUILD)
 
-.PHONY: all build debug release library examples clean run unit-test test inspect package check-build-tools check-run-tools check-tools help
+.PHONY: all build debug release library examples clean run unit-test test inspect package package-test check-build-tools check-run-tools check-tools help
 .SECONDARY: $(LIB_OBJECTS) $(APP_OBJECTS)
 all: build
 build: check-build-tools library examples
@@ -51,7 +51,9 @@ inspect: build
 	@name="$(APP)"; test -n "$$name" || { echo "usage: make inspect APP=hello" >&2; exit 2; }; bin="build/$(BUILD)/bin/$$name"; test -f "$$bin" || { echo "error: binary not found: $$bin" >&2; exit 2; }; "$(FILE)" "$$bin"; "$(READELF)" -h "$$bin"; "$(READELF)" -d "$$bin" 2>/dev/null || true; "$(OBJDUMP)" -d "$$bin" | head -80; "$(NM)" -C "$$bin" | head -40
 
 package: build
-	@rm -rf "$(PACKAGE_DIR)"; mkdir -p "$(PACKAGE_DIR)/bin" "$(PACKAGE_DIR)/docs"; cp build/$(BUILD)/bin/* "$(PACKAGE_DIR)/bin/"; cp README.md docs/architecture.md "$(PACKAGE_DIR)/docs/"; { echo "name: riscv-mini-sdk"; echo "build: $(BUILD)"; echo "arch: $(ARCH)"; echo "abi: $(ABI)"; echo "compiler: $(CC)"; } > "$(PACKAGE_DIR)/SDK-METADATA"; tar -czf "packages/riscv-mini-sdk-$(BUILD).tar.gz" -C packages "riscv-mini-sdk-$(BUILD)"; rm -rf "$(PACKAGE_DIR)"; echo "created packages/riscv-mini-sdk-$(BUILD).tar.gz"
+	@rm -rf "$(PACKAGE_DIR)"; mkdir -p "$(PACKAGE_DIR)/bin" "$(PACKAGE_DIR)/include" "$(PACKAGE_DIR)/lib" "$(PACKAGE_DIR)/docs"; cp build/$(BUILD)/bin/* "$(PACKAGE_DIR)/bin/"; cp -R include/. "$(PACKAGE_DIR)/include/"; cp "$(LIBRARY)" "$(PACKAGE_DIR)/lib/"; cp README.md docs/architecture.md "$(PACKAGE_DIR)/docs/"; { echo "name: riscv-mini-sdk"; echo "build: $(BUILD)"; echo "arch: $(ARCH)"; echo "abi: $(ABI)"; echo "compiler: $(CC)"; echo "sysroot: $(SYSROOT)"; } > "$(PACKAGE_DIR)/SDK-METADATA"; tar -czf "packages/riscv-mini-sdk-$(BUILD).tar.gz" -C packages "riscv-mini-sdk-$(BUILD)"; rm -rf "$(PACKAGE_DIR)"; echo "created packages/riscv-mini-sdk-$(BUILD).tar.gz"
+package-test: package
+	@./tests/test_package.sh "$(BUILD)"
 clean:
 	rm -rf build/release build/debug packages/riscv-mini-sdk-release packages/riscv-mini-sdk-debug packages/riscv-mini-sdk-release.tar.gz packages/riscv-mini-sdk-debug.tar.gz
 -include $(LIB_OBJECTS:.o=.d) $(APP_OBJECTS:.o=.d)

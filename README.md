@@ -54,6 +54,11 @@ The compact interface delegates to Make:
 against it. `SYSROOT` can point to a complete target sysroot. Do not point it
 at host x86-64 libraries or an incomplete directory.
 
+`make package` creates an archive containing the three application binaries,
+`libminisdk.a`, public headers, metadata, and documentation under predictable
+`bin/`, `lib/`, `include/`, and `docs/` directories. Build objects and
+dependency files are never packaged.
+
 ## Layout
 
 ```text
