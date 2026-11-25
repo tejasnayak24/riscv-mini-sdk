@@ -8,7 +8,7 @@ APP_OBJECTS := $(patsubst %,build/$(BUILD)/apps/%.o,$(APP_NAMES))
 APP_BINS := $(patsubst %,build/$(BUILD)/bin/%,$(APP_NAMES))
 PACKAGE_DIR := packages/riscv-mini-sdk-$(BUILD)
 
-.PHONY: all build debug release library examples clean run test inspect package check-build-tools check-run-tools check-tools help
+.PHONY: all build debug release library examples clean run unit-test test inspect package check-build-tools check-run-tools check-tools help
 .SECONDARY: $(LIB_OBJECTS) $(APP_OBJECTS)
 all: build
 build: check-build-tools library examples
@@ -43,7 +43,9 @@ build/$(BUILD)/lib build/$(BUILD)/bin build/$(BUILD)/libraries build/$(BUILD)/ap
 
 run: check-run-tools build
 	@name="$(APP)"; test -n "$$name" || { echo "usage: make run APP=hello" >&2; exit 2; }; test -x "build/$(BUILD)/bin/$$name" || { echo "error: unknown or unbuilt app '$$name'" >&2; exit 2; }; "$(FILE)" "build/$(BUILD)/bin/$$name" | grep -q 'RISC-V' || { echo "error: '$$name' is not a RISC-V executable" >&2; exit 1; }; "$(QEMU)" $(QEMU_OPTS) -L "$(QEMU_LD_PREFIX)" "build/$(BUILD)/bin/$$name"
-test: check-build-tools build
+unit-test:
+	@./tests/run_unit_tests.sh
+test: check-build-tools unit-test build
 	@./tests/test.sh "$(BUILD)"
 inspect: build
 	@name="$(APP)"; test -n "$$name" || { echo "usage: make inspect APP=hello" >&2; exit 2; }; bin="build/$(BUILD)/bin/$$name"; test -f "$$bin" || { echo "error: binary not found: $$bin" >&2; exit 2; }; "$(FILE)" "$$bin"; "$(READELF)" -h "$$bin"; "$(READELF)" -d "$$bin" 2>/dev/null || true; "$(OBJDUMP)" -d "$$bin" | head -80; "$(NM)" -C "$$bin" | head -40
