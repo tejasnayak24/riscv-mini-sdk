@@ -6,7 +6,7 @@ cd "$root"
 pass=0
 fail() { echo "FAIL: $*" >&2; exit 1; }
 check() { "$@" || fail "$*"; echo "PASS: $*"; pass=$((pass + 1)); }
-check ./scripts/check-toolchain.sh
+check ./scripts/check-toolchain.sh build
 check ./tests/test_math.sh
 check ./tests/test_log.sh
 check test -f "build/$profile/lib/libminisdk.a"
@@ -30,7 +30,10 @@ done
 if make -s run APP=does-not-exist >/dev/null 2>&1; then fail 'invalid app unexpectedly succeeded'; fi
 echo "PASS: invalid app handling"
 pass=$((pass + 1))
-if make -s QEMU=missing-qemu-binary check-tools >/dev/null 2>&1; then fail 'missing dependency unexpectedly succeeded'; fi
+make -s QEMU=missing-qemu-binary build >/dev/null || fail 'compilation unexpectedly required QEMU'
+echo "PASS: compilation works without QEMU"
+pass=$((pass + 1))
+if make -s QEMU=missing-qemu-binary check-run-tools >/dev/null 2>&1; then fail 'missing runtime dependency unexpectedly succeeded'; fi
 echo "PASS: missing dependency handling"
 pass=$((pass + 1))
 echo "All $pass integration checks passed."
